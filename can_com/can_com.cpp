@@ -1,8 +1,20 @@
 #include "can_com.h"
 #include "CAN.h"
 
+CAN_com::CAN_com(PinName RX_, PinName TX_)
+    : can(RX_, TX_)
+{
+    can.frequency(default_baudrate);
+}
+
+
+CAN_com::CAN_com(PinName RX_, PinName TX_, const int baud)
+    : can(RX_, TX_, baud)
+{
+}
+
 // 各種値をCANMessageに格納
-void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff){
+void CAN_com::pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff){
     p_des = fminf(fmaxf(P_MIN, p_des), P_MAX);
     v_des = fminf(fmaxf(V_MIN, v_des), V_MAX);
     kp = fminf(fmaxf(KP_MIN, kp), KP_MAX);
@@ -29,7 +41,7 @@ void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, flo
 
 
 // CANMessageを各種値に分解
-void unpack_reply(CANMessage msg, float *pos_, float *vel_, float *tt_f_){
+void CAN_com::unpack_reply(CANMessage msg, float *pos_, float *vel_, float *tt_f_){
     int id = msg.data[0];
     int p_int = (msg.data[1]<<8) | msg.data[2];
     int v_int = (msg.data[3]<<4) | (msg.data[4]>>4);
@@ -49,41 +61,53 @@ void unpack_reply(CANMessage msg, float *pos_, float *vel_, float *tt_f_){
 }
 
 
-void enter_control_mode(CANMessage* msg, uint8_t id_){
-    msg->id = id_;
-    msg->len = CAN_DATA_LENGTH;
-    msg->data[0] = 0xFF;
-    msg->data[1] = 0xFF;
-    msg->data[2] = 0xFF;
-    msg->data[3] = 0xFF;
-    msg->data[4] = 0xFF;
-    msg->data[5] = 0xFF;
-    msg->data[6] = 0xFF;
-    msg->data[7] = 0xFC;
+// control_modeに入る
+void CAN_com::enter_control_mode(uint8_t id_){
+    CANMessage msg;
+    msg.id = id_;
+    msg.len = CAN_DATA_LENGTH;
+    msg.data[0] = 0xFF;
+    msg.data[1] = 0xFF;
+    msg.data[2] = 0xFF;
+    msg.data[3] = 0xFF;
+    msg.data[4] = 0xFF;
+    msg.data[5] = 0xFF;
+    msg.data[6] = 0xFF;
+    msg.data[7] = 0xFC;
+
+    can.write(msg);
 }
 
-void exit_control_mode(CANMessage* msg, uint8_t id_){
-    msg->id = id_;
-    msg->len = CAN_DATA_LENGTH;
-    msg->data[0] = 0xFF;
-    msg->data[1] = 0xFF;
-    msg->data[2] = 0xFF;
-    msg->data[3] = 0xFF;
-    msg->data[4] = 0xFF;
-    msg->data[5] = 0xFF;
-    msg->data[6] = 0xFF;
-    msg->data[7] = 0xFD;
+
+void CAN_com::exit_control_mode(uint8_t id_){
+    CANMessage msg;
+    msg.id = id_;
+    msg.len = CAN_DATA_LENGTH;
+    msg.data[0] = 0xFF;
+    msg.data[1] = 0xFF;
+    msg.data[2] = 0xFF;
+    msg.data[3] = 0xFF;
+    msg.data[4] = 0xFF;
+    msg.data[5] = 0xFF;
+    msg.data[6] = 0xFF;
+    msg.data[7] = 0xFD;
+
+    can.write(msg);
 }
 
-void set_position_zero(CANMessage* msg, uint8_t id_){
-    msg->id = id_;
-    msg->len = CAN_DATA_LENGTH;
-    msg->data[0] = 0xFF;
-    msg->data[1] = 0xFF;
-    msg->data[2] = 0xFF;
-    msg->data[3] = 0xFF;
-    msg->data[4] = 0xFF;
-    msg->data[5] = 0xFF;
-    msg->data[6] = 0xFF;
-    msg->data[7] = 0xFE;
+
+void CAN_com::set_position_zero(uint8_t id_){
+    CANMessage msg;
+    msg.id = id_;
+    msg.len = CAN_DATA_LENGTH;
+    msg.data[0] = 0xFF;
+    msg.data[1] = 0xFF;
+    msg.data[2] = 0xFF;
+    msg.data[3] = 0xFF;
+    msg.data[4] = 0xFF;
+    msg.data[5] = 0xFF;
+    msg.data[6] = 0xFF;
+    msg.data[7] = 0xFE;
+
+    can.write(msg);
 }

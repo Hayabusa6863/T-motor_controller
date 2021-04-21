@@ -28,11 +28,22 @@
 
 #define CAN_DATA_LENGTH 8
 
-void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff);
-void unpack_reply(CANMessage msg, float *pos_, float *vel_, float *tt_f_);
+class CAN_com{
+private:
+    CAN can;
+    const int default_baudrate = 1000000;
 
-void enter_control_mode(CANMessage*, uint8_t);
-void exit_control_mode(CANMessage*, uint8_t);
-void set_position_zero(CANMessage*, uint8_t);
+public:
+    CAN_com(PinName, PinName);
+    CAN_com(PinName, PinName, int);
+    ~CAN_com();
 
-#endif
+    void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff);
+    void unpack_reply(CANMessage msg, float *pos_, float *vel_, float *tt_f_);
+
+    void enter_control_mode(uint8_t);
+    void exit_control_mode(uint8_t);
+    void set_position_zero(uint8_t);
+};
+
+#endif  // CAN_com

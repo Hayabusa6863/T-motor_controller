@@ -24,6 +24,8 @@ DigitalIn toggle(USER_BUTTON); // スタート用のトグル
 CAN can(CAN_RX_PIN, CAN_TX_PIN);   // CAN通信設定
 CANMessage send_msg;
 
+void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff);
+void enter_control_mode(CANMessage *, uint8_t);
 
 // 送信スレッド
 void send_thread(void){
@@ -68,4 +70,43 @@ int main(){
         thread.join();  // wait for thread to terminate.
     }
     return 0;
+}
+
+
+void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff){
+    p_des = fminf(fmaxf(P_MIN, p_des), P_MAX);
+    v_des = fminf(fmaxf(V_MIN, v_des), V_MAX);
+    kp = fminf(fmaxf(KP_MIN, kp), KP_MAX);
+    kd = fminf(fmaxf(KD_MIN, kd), KD_MAX);
+    t_ff = fminf(fmaxf(T_MIN, t_ff), T_MAX);
+    
+    // convert float -> uint
+    int p_int = float_to_uint(p_des, P_MIN, P_MAX, 16);     // Position
+    int v_int = float_to_uint(v_des, V_MIN, V_MAX, 12);     // Velocity
+    int kp_int = float_to_uint(kp, KP_MIN, KP_MAX, 12);     // Kp
+    int kd_int = float_to_uint(kd, KD_MIN, KD_MAX, 12);     // Kd
+    int t_int = float_to_uint(t_ff, T_MIN, T_MAX, 12);      // Torque
+    
+    // Pack ints into the CAN buffer
+    msg->data[0] = p_int >> 8;
+    msg->data[1] = p_int & 0xFF;
+    msg->data[2] = v_int >> 4;
+    msg->data[3] = ((v_int & 0xF)<<4) | (kp_int >> 8);
+    msg->data[4] = kp_int & 0xFF;
+    msg->data[5] = kd_int >> 4;
+    msg->data[6] = ((kd_int & 0xF)<<4) | (t_int>>8);
+    msg->data[7] = t_int & 0xFF;
+}
+
+void enter_control_mode(CANMessage* msg, uint8_t id_){
+    msg->id = id_;
+    msg->len = CAN_DATA_LENGTH;
+    msg->data[0] = 0xFF;
+    msg->data[1] = 0xFF;
+    msg->data[2] = 0xFF;
+    msg->data[3] = 0xFF;
+    msg->data[4] = 0xFF;
+    msg->data[5] = 0xFF;
+    msg->data[6] = 0xFF;
+    msg->data[7] = 0xFC;
 }

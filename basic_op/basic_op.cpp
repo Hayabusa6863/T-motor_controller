@@ -1,5 +1,5 @@
 #include "basic_op.h"
-
+/*
 float fmaxf(float x, float y){
     /// Returns maximum of x, y ///
     return (((x)>(y))?(x):(y));
@@ -8,7 +8,7 @@ float fmaxf(float x, float y){
 float fminf(float x, float y){
     /// Returns minimum of x, y ///
     return (((x)<(y))?(x):(y));
-}
+}*/
 
 // float -> uint
 int float_to_uint(float x, float x_min, float x_max, int bits){
