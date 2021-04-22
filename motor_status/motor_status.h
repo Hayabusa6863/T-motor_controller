@@ -1,13 +1,6 @@
 #ifndef MOTOR_STATUS_H_
 #define MOTOR_STATUS_H_
 
-#define P_MAX   12.5f
-#define P_MIN   -12.5f
-#define V_MAX   45.0f
-#define V_MIN   -45.0f
-#define T_MAX   18.0f
-#define T_MIN   -18.0f
-
 #include "mbed.h"
 
 class Motor_Status{
@@ -22,7 +15,12 @@ private:
 
 public:
     Motor_Status(uint8_t can_id_);
+    
+    void setPosition(float pos);
+    void setVelocity(float vel);
+    void setEffort(float eff);
     void setTargetEffort(float tau_ref_);   // 目標トルクのセット
+
     float getPosition(void);
     float getVelocity(void);
     float getEffort(void);

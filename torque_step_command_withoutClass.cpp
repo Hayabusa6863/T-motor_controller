@@ -4,12 +4,21 @@
 #include "PinNames.h"
 #include "mbed.h"
 #include "basic_op.h"
-#include "can_com.h"
-#include "mbed_wait_api.h"
+#include "motor_config.h"
+#include <cstdint>
 
 #if !DEVICE_CAN
 #error [NOT_SUPPORTED] CAN not supported for this target
 # endif
+
+// Pin Settings
+const PinName can_rx_pin = PB_8;
+const PinName can_tx_pin = PB_9;
+const int can_baudrate = 1000000;
+const uint8_t can_data_length = 8;
+const uint8_t can_master_id = 0;
+const uint8_t can_motor_id = 1;
+
 
 // 理論値は0.76[Nm]
 float tau_ref = 0.521;   // トルク指令値(mutexで管理すること！)
@@ -21,7 +30,7 @@ volatile bool running = false;
 DigitalOut led(LED1);   // デバッグ用LED
 DigitalIn toggle(USER_BUTTON); // スタート用のトグル
 
-CAN can(CAN_RX_PIN, CAN_TX_PIN);   // CAN通信設定
+CAN can_handler(can_rx_pin, can_tx_pin, can_baudrate);   // CAN通信設定
 CANMessage send_msg;
 
 void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff);
@@ -33,10 +42,10 @@ void send_thread(void){
     
     if(running){
         pack_cmd(&send_msg, 0.0, 0.0, 0.0, 0.0, tau_ref);
-        can.write(send_msg);
+        can_handler.write(send_msg);
     }else{
         pack_cmd(&send_msg, 0.0, 0.0, 0.0, 0.0, 0.0);
-        can.write(send_msg);
+        can_handler.write(send_msg);
     }
     mutex.unlock();
     ThisThread::sleep_for(5ms);
@@ -45,18 +54,16 @@ void send_thread(void){
 
 int main(){
     printf("main() start\r\n");
-    can.frequency(1000000);
     led = 0;
 
-
     wait_us(1000000);
-    enter_control_mode(&send_msg, CAN_MOTOR_ID);
-    can.write(send_msg);
+    enter_control_mode(&send_msg, can_motor_id);
+    can_handler.write(send_msg);
     printf("enter_control_mode\r\n");
     wait_us(10000);
 
-    send_msg.id = CAN_MOTOR_ID;
-    send_msg.len = CAN_DATA_LENGTH;
+    send_msg.id = can_motor_id;
+    send_msg.len = can_data_length;
 
     running = true;
     thread.start(callback(send_thread));    // send_thread()の開始
@@ -73,19 +80,13 @@ int main(){
 }
 
 
-void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff){
-    p_des = fminf(fmaxf(P_MIN, p_des), P_MAX);
-    v_des = fminf(fmaxf(V_MIN, v_des), V_MAX);
-    kp = fminf(fmaxf(KP_MIN, kp), KP_MAX);
-    kd = fminf(fmaxf(KD_MIN, kd), KD_MAX);
-    t_ff = fminf(fmaxf(T_MIN, t_ff), T_MAX);
-    
+void pack_cmd(CANMessage *msg, float tau_ref_){
     // convert float -> uint
-    int p_int = float_to_uint(p_des, P_MIN, P_MAX, 16);     // Position
-    int v_int = float_to_uint(v_des, V_MIN, V_MAX, 12);     // Velocity
-    int kp_int = float_to_uint(kp, KP_MIN, KP_MAX, 12);     // Kp
-    int kd_int = float_to_uint(kd, KD_MIN, KD_MAX, 12);     // Kd
-    int t_int = float_to_uint(t_ff, T_MIN, T_MAX, 12);      // Torque
+    int p_int = float_to_uint(0.0, P_MIN, P_MAX, 16);     // Position
+    int v_int = float_to_uint(0.0, V_MIN, V_MAX, 12);     // Velocity
+    int kp_int = float_to_uint(0.0, KP_MIN, KP_MAX, 12);     // Kp
+    int kd_int = float_to_uint(0.0, KD_MIN, KD_MAX, 12);     // Kd
+    int t_int = float_to_uint(tau_ref_, T_MIN, T_MAX, 12);      // Torque
     
     // Pack ints into the CAN buffer
     msg->data[0] = p_int >> 8;
@@ -100,7 +101,7 @@ void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, flo
 
 void enter_control_mode(CANMessage* msg, uint8_t id_){
     msg->id = id_;
-    msg->len = CAN_DATA_LENGTH;
+    msg->len = can_data_length;
     msg->data[0] = 0xFF;
     msg->data[1] = 0xFF;
     msg->data[2] = 0xFF;

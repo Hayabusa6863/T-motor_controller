@@ -2,48 +2,30 @@
 #define CAN_COM_H_
 
 #include "mbed.h"
-#include "CAN.h"
 #include "basic_op.h"
+#include "motor_status.h"
+#include "motor_config.h"
 #include <cstdint>
 
-// 上限値の設定
-#define P_MIN   -12.5f
-#define P_MAX   12.5f
-#define V_MIN   -45.0f
-#define V_MAX   45.0f
-#define KP_MIN   0.0f
-#define KP_MAX   500.0f
-#define KD_MIN   0.0f
-#define KD_MAX   5.0f
-#define T_MIN   -18.0f
-#define T_MAX   18.0f
+
 
 // CAN_ID設定
 #define CAN_HOST_ID     0
 #define CAN_MOTOR_ID    1
-
-// NUCLEO_F446REのピン設定
-#define CAN_RX_PIN  PB_8
-#define CAN_TX_PIN  PB_9
-
 #define CAN_DATA_LENGTH 8
 
-class CAN_com{
-private:
-    CAN can;
-    const int default_baudrate = 1000000;
+const PinName can_rx_pin = PB_8;
+const PinName can_tx_pin = PB_9;
+const int can_baudrate = 1000000;
 
-public:
-    CAN_com(PinName, PinName);
-    CAN_com(PinName, PinName, int);
-    ~CAN_com();
 
-    void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff);
-    void unpack_reply(CANMessage msg, float *pos_, float *vel_, float *tt_f_);
+void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff);
+void unpack_reply(CANMessage msg, float *pos_, float *vel_, float *tt_f_);
 
-    void enter_control_mode(uint8_t);
-    void exit_control_mode(uint8_t);
-    void set_position_zero(uint8_t);
-};
+void enter_control_mode(uint8_t);
+void exit_control_mode(uint8_t);
+void set_position_zero(uint8_t);
+
+void can_callback(void);
 
 #endif  // CAN_com

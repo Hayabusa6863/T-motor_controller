@@ -8,17 +8,16 @@
 
 class T_motor_controller{
 private:
-    const PinName can_rx_pin = PB_8;
-    const PinName can_tx_pin = PB_9;
-
-    CAN_com can_com;
+    DigitalOut led;
+    CAN can;    // canのアドレスを渡す形にするべきか，can_com.cppにcanの実態を置くべきか？
+protected:
     std::vector<Motor_Status> motor;
+    // virtual void control(void) = 0; // トルク指令を計算
 
 public:
     // Constructors
     T_motor_controller(void);
-    T_motor_controller(const PinName rx, const PinName tx);
+    ~T_motor_controller();
 
-    virtual void control(void);
 };
 #endif  // T-motor_controller
