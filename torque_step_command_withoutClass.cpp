@@ -33,7 +33,7 @@ DigitalIn toggle(USER_BUTTON); // スタート用のトグル
 CAN can_handler(can_rx_pin, can_tx_pin, can_baudrate);   // CAN通信設定
 CANMessage send_msg;
 
-void pack_cmd(CANMessage *msg, float p_des, float v_des, float kp, float kd, float t_ff);
+void pack_cmd(CANMessage *msg, float t_ff);
 void enter_control_mode(CANMessage *, uint8_t);
 
 // 送信スレッド
@@ -41,10 +41,10 @@ void send_thread(void){
     mutex.lock();
     
     if(running){
-        pack_cmd(&send_msg, 0.0, 0.0, 0.0, 0.0, tau_ref);
+        pack_cmd(&send_msg, tau_ref);
         can_handler.write(send_msg);
     }else{
-        pack_cmd(&send_msg, 0.0, 0.0, 0.0, 0.0, 0.0);
+        pack_cmd(&send_msg, 0.0);
         can_handler.write(send_msg);
     }
     mutex.unlock();

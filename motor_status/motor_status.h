@@ -11,7 +11,7 @@ private:
     float velocity; // 現在速度
     float effort;   // 現在トルク
 
-    float effort_ref;   // 目標トルク
+    float effort_ref;   // 指令トルク
 
 public:
     Motor_Status(uint8_t can_id_);
@@ -21,9 +21,10 @@ public:
     void setEffort(float eff);
     void setTargetEffort(float tau_ref_);   // 目標トルクのセット
 
-    float getPosition(void);
-    float getVelocity(void);
-    float getEffort(void);
+    const float getPosition(void);
+    const float getVelocity(void);
+    const float getEffort(void);
+    const float getTargetEffort(void);
 };
 
 #endif  // Motor_Status
