@@ -17,6 +17,8 @@ private:
     const PinName can_rx_pin = PB_8;
     const PinName can_tx_pin = PB_9;
     const int can_baudrate = 1000000;
+    
+    Thread thread;  // 送信用のスレッド
 
     DigitalOut led;
     CAN_com can_com;
@@ -25,8 +27,9 @@ private:
     // モータIDとモータ情報クラスのペア
     std::map<uint8_t, Motor_Status*> motor_id;
 
-    void addMotor(uint8_t); 
-    void can_callback(void);
+    void add_motor(void); 
+    void can_callback(void);    // CAN受信割込み関数
+    void can_send(void);        // CAN送信スレッド
 
 protected:
     virtual void control(void) = 0;     // トルク指令を計算

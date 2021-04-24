@@ -6,13 +6,16 @@ T_motor_controller::T_motor_controller(void)
       can(can_rx_pin, can_tx_pin, can_baudrate),
       can_com(&can)
 {
+    // EventQueueを使ってRTOS化？
     can.attach(callback(this, &T_motor_controller::can_callback), CAN::RxIrq);
+    
+    
     ThisThread::sleep_for(100ms);
 
     // add motor for all designated motors
     // for()
 
-    // findで探索したい
+    // findで探索したい．以下例題．
     /*
     std::map<string, int> a_map;
 
@@ -23,7 +26,12 @@ T_motor_controller::T_motor_controller(void)
         std::cout << "apple には何も關聯附けられてゐない。" << std::endl;
     }
     */
+    add_motor();
+    
+}
 
+
+void T_motor_controller::add_motor(void){
     uint8_t id_ = 0;
     for(uint8_t i=0; i<(sizeof(motor_to_control)/sizeof(*motor_to_control)); i++){
         motor.push_back(Motor_Status(motor_to_control[i]));
@@ -42,6 +50,13 @@ void T_motor_controller::can_callback(void){
             can_com.unpack_reply(msg_buf, motor_id[msg_buf.id]);    // CAN_IDに対応したMotor_statusのポインタを渡す．
         }
     }
+}
+
+
+// CAN送信スレッド
+// 
+void T_motor_controller::can_send(void){
+
 }
 
 
