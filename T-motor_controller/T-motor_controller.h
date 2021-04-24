@@ -23,23 +23,20 @@ private:
     CAN can;
     
     // モータIDとモータ情報クラスのペア
-    std::vector<Motor_Status> motor;
     std::map<uint8_t, Motor_Status*> motor_id;
 
-    void addMotor(uint8_t); // モータの追加
+    void addMotor(uint8_t); 
     void can_callback(void);
 
 protected:
-    // virtual void control(void) = 0; // トルク指令を計算
-    void startControl(void);
-
+    virtual void control(void) = 0;     // トルク指令を計算
+    std::vector<Motor_Status> motor;    
+    void enableController(void);
+    void disableController(void);
 public:
     // Constructors
     T_motor_controller(void);
     ~T_motor_controller();
-
-    void enableController(void);
-    void disableController(void);
 
 };
 #endif  // T-motor_controller

@@ -7,6 +7,8 @@ T_motor_controller::T_motor_controller(void)
       can_com(&can)
 {
     can.attach(callback(this, &T_motor_controller::can_callback), CAN::RxIrq);
+    ThisThread::sleep_for(100ms);
+
     // add motor for all designated motors
     // for()
 
@@ -21,14 +23,14 @@ T_motor_controller::T_motor_controller(void)
         std::cout << "apple には何も關聯附けられてゐない。" << std::endl;
     }
     */
-    uint8_t id_;
+
+    uint8_t id_ = 0;
     for(uint8_t i=0; i<(sizeof(motor_to_control)/sizeof(*motor_to_control)); i++){
         motor.push_back(Motor_Status(motor_to_control[i]));
         can_com.enter_control_mode(motor_to_control[i]);
         motor_id.emplace(motor_to_control[i], &motor[id_]);
         id_++;
     }
-    
 }
 
 // CAN通信受信割込みコールバック関数
@@ -37,7 +39,7 @@ void T_motor_controller::can_callback(void){
     CANMessage msg_buf;
     if(can.read(msg_buf)){
         if(msg_buf.id == CAN_HOST_ID){  // 送信先が自分かどうか判断
-            
+            can_com.unpack_reply(msg_buf, motor_id[msg_buf.id]);    // CAN_IDに対応したMotor_statusのポインタを渡す．
         }
     }
 }

@@ -30,15 +30,15 @@ void CAN_com::pack_cmd(CANMessage &msg, Motor_Status m){
 
 
 // CANMessageを各種値に分解
-void CAN_com::unpack_reply(const CANMessage& msg, Motor_Status& m){
+void CAN_com::unpack_reply(const CANMessage& msg, Motor_Status* m){
     int id = msg.data[0];   // IDの取得
     int p_int = (msg.data[1]<<8) | msg.data[2];
     int v_int = (msg.data[3]<<4) | (msg.data[4]>>4);
     int i_int = ((msg.data[4]&0xF)<<8) | msg.data[5];
 
-    m.setPosition(uint_to_float(p_int, P_MIN, P_MAX, 16));
-    m.setVelocity(uint_to_float(v_int, V_MIN, V_MAX, 12));
-    m.setEffort(uint_to_float(i_int, T_MIN, T_MAX, 12));
+    m->setPosition(uint_to_float(p_int, P_MIN, P_MAX, 16));
+    m->setVelocity(uint_to_float(v_int, V_MIN, V_MAX, 12));
+    m->setEffort(uint_to_float(i_int, T_MIN, T_MAX, 12));
 }
 
 
@@ -91,10 +91,4 @@ void CAN_com::set_position_zero(uint8_t id_){
     msg.data[7] = 0xFE;
 
     can->write(msg);
-}
-
-
-// 受け取ったモータ単体のデータを処理
-void CAN_com::can_callback(void){
-    
 }

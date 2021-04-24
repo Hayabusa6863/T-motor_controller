@@ -18,17 +18,15 @@ private:
     CAN *can;
     const int default_baudrate = 1000000;
 
-    void pack_cmd(CANMessage&, Motor_Status);
-    void unpack_reply(const CANMessage&, Motor_Status&);
-    void can_callback(void);
+    
 
 public:
     CAN_com(CAN *can_);
-
+    void pack_cmd(CANMessage&, Motor_Status);
+    void unpack_reply(const CANMessage&, Motor_Status*);
+    
     void enter_control_mode(uint8_t);
     void exit_control_mode(uint8_t);
     void set_position_zero(uint8_t);
-}
-
-
+};
 #endif  // CAN_com
