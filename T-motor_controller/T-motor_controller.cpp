@@ -8,29 +8,12 @@ T_motor_controller::T_motor_controller(void)
 {
     // EventQueueを使ってRTOS化？
     can.attach(callback(this, &T_motor_controller::can_callback), CAN::RxIrq);
-    
-    
     ThisThread::sleep_for(100ms);
-
-    // add motor for all designated motors
-    // for()
-
-    // findで探索したい．以下例題．
-    /*
-    std::map<string, int> a_map;
-
-    std::map<string, int>::iterator it = a_map.find("apple");
-    if (it != a_map.end()) {
-        std::cout << "apple に關聯附けられてゐたのは"  << it->second << std::endl;
-    }else {
-        std::cout << "apple には何も關聯附けられてゐない。" << std::endl;
-    }
-    */
-    add_motor();
-    
+    add_motor();    
 }
 
 
+// 設定ファイルからモータのCAN_IDを読み出す
 void T_motor_controller::add_motor(void){
     uint8_t id_ = 0;
     for(uint8_t i=0; i<(sizeof(motor_to_control)/sizeof(*motor_to_control)); i++){
@@ -40,6 +23,7 @@ void T_motor_controller::add_motor(void){
         id_++;
     }
 }
+
 
 // CAN通信受信割込みコールバック関数
 // CANMessageの送信元IDから対応したmotor_statusを呼び出したい！
@@ -55,18 +39,24 @@ void T_motor_controller::can_callback(void){
 
 // CAN送信スレッド
 // 
-void T_motor_controller::can_send(void){
-
+void T_motor_controller::can_send_thread(void){
+    for(auto& m : motor){
+        CANMessage msg;
+        can_com.pack_cmd(msg, m);
+        can.write(msg);
+    }
 }
 
 
 // コントローラの有効化
 void T_motor_controller::enableController(void){
+    thread.start(callback(this, &T_motor_controller::can_send_thread)); // start can_send thread
     led = 1;    // Turn on LED
-    // start can_send thread
 }
+
 
 // コントローラ無効化
 void T_motor_controller::disableController(void){
-    led = 0;
+    thread.terminate(); // Stop can_send thread
+    led = 0;    // Turn off LED
 }

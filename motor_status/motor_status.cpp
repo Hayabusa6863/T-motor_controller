@@ -1,4 +1,5 @@
 #include "motor_status.h"
+#include <cstdint>
 
 Motor_Status::Motor_Status(uint8_t can_id_)
     : can_id(can_id_),
@@ -12,7 +13,8 @@ void Motor_Status::setVelocity(float vel){ velocity = vel; }
 void Motor_Status::setEffort(float eff){ effort = eff; }
 void Motor_Status::setTargetEffort(float tau_ref_){ effort_ref = tau_ref_; }
 
-const float Motor_Status::getPosition(void){ return position; }
-const float Motor_Status::getVelocity(void){ return velocity; }
-const float Motor_Status::getEffort(void){ return effort; }
-const float Motor_Status::getTargetEffort(void){ return effort_ref; }
+const uint8_t Motor_Status::getId(void){ return can_id; }
+const float   Motor_Status::getPosition(void){ return position; }
+const float   Motor_Status::getVelocity(void){ return velocity; }
+const float   Motor_Status::getEffort(void){ return effort; }
+const float   Motor_Status::getTargetEffort(void){ return effort_ref; }

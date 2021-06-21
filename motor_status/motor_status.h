@@ -2,6 +2,7 @@
 #define MOTOR_STATUS_H_
 
 #include "mbed.h"
+#include <cstdint>
 
 class Motor_Status{
 private:
@@ -21,6 +22,7 @@ public:
     void setEffort(float eff);
     void setTargetEffort(float tau_ref_);   // 目標トルクのセット
 
+    const uint8_t getId(void);
     const float getPosition(void);
     const float getVelocity(void);
     const float getEffort(void);

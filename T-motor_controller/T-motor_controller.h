@@ -24,18 +24,18 @@ private:
     CAN_com can_com;
     CAN can;
     
-    // モータIDとモータ情報クラスのペア
-    std::map<uint8_t, Motor_Status*> motor_id;
+    std::map<uint8_t, Motor_Status*> motor_id;  // モータのCAN_IDとモータ情報クラスポインタのペア
 
-    void add_motor(void); 
+    void add_motor(void);       // モータの呼び出し
     void can_callback(void);    // CAN受信割込み関数
-    void can_send(void);        // CAN送信スレッド
+    void can_send_thread(void);        // CAN送信スレッド
 
 protected:
     virtual void control(void) = 0;     // トルク指令を計算
     std::vector<Motor_Status> motor;    
-    void enableController(void);
-    void disableController(void);
+    void enableController(void);        // コントローラを有効化
+    void disableController(void);       // コントローラを無効化
+    
 public:
     // Constructors
     T_motor_controller(void);
